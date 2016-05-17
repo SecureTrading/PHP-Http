@@ -5,146 +5,39 @@ namespace Securetrading\Http;
 class Curl implements HttpInterface {
   protected $_log;
 
+  protected $_configData = array(
+    'url' => '',
+    'user_agent' => '',
+    'ssl_verify_peer' => true,
+    'ssl_verify_host' => 2,
+    'connect_timeout' => 5,
+    'timeout' => 60,
+    'http_headers' => array(),
+    'ssl_cacertfile' => '',
+    'proxy_host' => '',
+    'proxy_port' => '',
+    'username' => '',
+    'password' => '',
+    'curl_options' => array(),
+
+    // Not CURLOPT_* constants:
+
+    'sleep_seconds' => 1,
+    'connect_attempts' => 20,
+    'connect_attempts_timeout' => 40,
+  );
+
   protected $_ch;
-
-  protected $_url = '';
-    
-  protected $_username = '';
-   
-  protected $_password = '';
-
-  protected $_userAgent = '';
-
-  protected $_proxyHost = '';
-
-  protected $_proxyPort;
-    
-  protected $_sslVerifyPeer = true;
-    
-  protected $_sslVerifyHost = 2;
-  
-  protected $_sslCaCertFile = '';
-  
-  protected $_curlOptions = array();
-  
-  protected $_httpHeaders = array();
-  
-  protected $_connectTimeout = 5;
-  
-  protected $_timeout = 60;
-  
-  protected $_connectAttempts = 20;
-
-  protected $_connectAttemptsTimeout = 40;
-
-  protected $_sleepUseconds = 1000000;
-
-  protected $_httpLogData = '';
 
   protected $_tempStream;
 
-  public function __construct(\Psr\Log\LoggerInterface $log) {
+  protected $_httpLogData = '';
+
+  public function __construct(\Psr\Log\LoggerInterface $log, array $configData = array()) {
     $this->_log = $log;
+    $this->_configData = array_replace($this->_configData, $configData);
     $this->_ch = curl_init();
     $this->_tempStream = fopen('php://temp', "w+");
-  }
-    
-  public function setUsername($username) {
-    $this->_username = $username;
-    return $this;
-  }
-    
-  public function setPassword($password) {
-    $this->_password = $password;
-    return $this;
-  }
-
-  public function setUserAgent($userAgent) {
-    $this->_userAgent = $userAgent;
-    return $this;
-  }
-
-  public function setProxyHost($proxyHost) {
-    $this->_proxyHost = $proxyHost;
-    return $this;
-  }
-
-  public function setProxyPort($proxyPort) {
-    $this->_proxyPort = $proxyPort;
-    return $this;
-  }
-    
-  public function setSslVerifyPeer($bool) {
-    $this->_sslVerifyPeer = (bool) $bool;
-    return $this;
-  }
-  
-  public function setSslVerifyHost($int) {
-    $this->_sslVerifyHost = $int;
-    return $this;
-  }
-  
-  public function setSslCaCertFile($file) {
-    $this->_sslCaCertFile = $file;
-    return $this;
-  }
-
-  public function setConnectTimeout($connectTimeout) {
-    $this->_connectTimeout = $connectTimeout;
-    return $this;
-  }
-
-  public function setConnectAttemptsTimeout($connectAttemptsTimeout) {
-    $this->_connectAttemptsTimeout = $connectAttemptsTimeout;
-    return $this;
-  }
-  
-  public function setTimeout($timeout) {
-    $this->_timeout = $timeout;
-    return $this;
-  }
-  
-  public function setConnectAttempts($connectAttempts) {
-    $this->_connectAttempts = $connectAttempts;
-    return $this;
-  }
-  
-  public function setSleepUseconds($sleepUseconds) {
-    $this->_sleepUseconds = $sleepUseconds;
-    return $this;
-  }
-  
-  public function setCurlOptions(array $options) {
-    $this->_curlOptions = $options;
-    return $this;
-  }
-
-  public function setCurlOption($option, $value) {
-    $this->_curlOptions[$option] = $value;
-    return $this;
-  }
-
-  public function setUrl($url) {
-    $this->_url = $url;
-    return $this;
-  }
-  
-  public function getUrl() {
-    return $this->_url;
-  }
-
-  public function setRequestHeaders(array $headers) {
-    $this->_httpHeaders = $headers;
-    return $this;
-  }
-  
-  public function addRequestHeader($header) {
-    $this->_httpHeaders[] = $header;
-    return $this;
-  }
-  
-  public function getRequestHeaders() {
-    return $this->_httpHeaders;
   }
 
   public function send($requestMethod, $requestBody = '') {
@@ -156,20 +49,16 @@ class Curl implements HttpInterface {
     return $this->_sendAndReceive();
   }
 
-  public function post($requestBody = '') {
-    curl_setopt($this->_ch, CURLOPT_POST, 1);
-    curl_setopt($this->_ch, CURLOPT_POSTFIELDS, $requestBody);
-    $this->_prepareCurl();
-    return $this->_sendAndReceive();
-  }
-
   public function get() {
     $this->_prepareCurl();
     return $this->_sendAndReceive();
   }
 
-  public function getInfo($curlInfoConstant = 0) {
-    return curl_getinfo($this->_ch, $curlInfoConstant);
+  public function post($requestBody = '') {
+    curl_setopt($this->_ch, CURLOPT_POST, 1);
+    curl_setopt($this->_ch, CURLOPT_POSTFIELDS, $requestBody);
+    $this->_prepareCurl();
+    return $this->_sendAndReceive();
   }
 
   public function getResponseCode() {
@@ -180,39 +69,43 @@ class Curl implements HttpInterface {
     return $this->_httpLogData;
   }
 
+  public function getInfo($curlInfoConstant = 0) {
+    return curl_getinfo($this->_ch, $curlInfoConstant);
+  }
+
   protected function _prepareCurl() {
     curl_setopt($this->_ch, CURLOPT_FOLLOWLOCATION, true);
     curl_setopt($this->_ch, CURLOPT_FAILONERROR, true);
 
-    curl_setopt($this->_ch, CURLOPT_URL, $this->_url);
-    curl_setopt($this->_ch, CURLOPT_USERAGENT, $this->_userAgent);
-    curl_setopt($this->_ch, CURLOPT_SSL_VERIFYPEER, $this->_sslVerifyPeer);
-    curl_setopt($this->_ch, CURLOPT_SSL_VERIFYHOST, $this->_sslVerifyHost);
-    curl_setopt($this->_ch, CURLOPT_CONNECTTIMEOUT, $this->_connectTimeout);
-    curl_setopt($this->_ch, CURLOPT_TIMEOUT, $this->_timeout);
-    curl_setopt($this->_ch, CURLOPT_HTTPHEADER, $this->getRequestHeaders());
+    curl_setopt($this->_ch, CURLOPT_URL, $this->_configData['url']);
+    curl_setopt($this->_ch, CURLOPT_USERAGENT, $this->_configData['user_agent']);
+    curl_setopt($this->_ch, CURLOPT_SSL_VERIFYPEER, $this->_configData['ssl_verify_peer']);
+    curl_setopt($this->_ch, CURLOPT_SSL_VERIFYHOST, $this->_configData['ssl_verify_host']);
+    curl_setopt($this->_ch, CURLOPT_CONNECTTIMEOUT, $this->_configData['connect_timeout']);
+    curl_setopt($this->_ch, CURLOPT_TIMEOUT, $this->_configData['timeout']);
+    curl_setopt($this->_ch, CURLOPT_HTTPHEADER, $this->_configData['http_headers']);
     
     curl_setopt($this->_ch, CURLOPT_VERBOSE, true);
     curl_setopt($this->_ch, CURLOPT_STDERR, $this->_tempStream);
     
-    if (!empty($this->_sslCaCertFile)) {
-      curl_setopt($this->_ch, CURLOPT_CAINFO, $this->_sslCaCertFile);
+    if (!empty($this->_configData['ssl_cacertfile'])) {
+      curl_setopt($this->_ch, CURLOPT_CAINFO, $this->_configData['ssl_cacertfile']);
     }
 
-    if (!empty($this->_proxyHost)) {
-      curl_setopt($this->_ch, CURLOPT_PROXY, $this->_proxyHost);
+    if (!empty($this->_configData['proxy_host'])) {
+      curl_setopt($this->_ch, CURLOPT_PROXY, $this->_configData['proxy_host']);
     }
 
-    if (!empty($this->_proxyPort)) {
-      curl_setopt($this->_ch, CURLOPT_PROXYPORT, $this->_proxyPort);
+    if (!empty($this->_configData['proxy_port'])) {
+      curl_setopt($this->_ch, CURLOPT_PROXYPORT, $this->_configData['proxy_port']);
     }
 
-    if (!empty($this->_username) && !empty($this->_password)) {
+    if (!empty($this->_configData['username']) && !empty($this->_configData['password'])) {
       curl_setopt($this->_ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-      curl_setopt($this->_ch, CURLOPT_USERPWD, $this->_username . ':' . $this->_password);
+      curl_setopt($this->_ch, CURLOPT_USERPWD, $this->_configData['username'] . ':' . $this->_configData['password']);
     }
     
-    curl_setopt_array($this->_ch, $this->_curlOptions);
+    curl_setopt_array($this->_ch, $this->_configData['curl_options']);
     
     curl_setopt($this->_ch, CURLOPT_RETURNTRANSFER, true);
   }
@@ -239,16 +132,16 @@ class Curl implements HttpInterface {
       
       if (in_array($curlErrorCode, array(CURLE_COULDNT_CONNECT))) {
 	$errorMessage = sprintf(
-	  'Failed to connect to %s on attempt %s.  Max attempts: %s.  Connect timeout: %s.  cURL Error: %s.  Sleeping for %s second(s).',
-	  $this->_url, 
+	  'Failed to connect to %s on attempt %s.  Max attempts: %s.  Connect attempts timeout: %s.  cURL error: %s.  Sleeping for %s second(s).',
+	  $this->_configData['url'],
 	  $i,
-	  $this->_connectAttempts,
-	  $this->_connectAttemptsTimeout,
+	  $this->_configData['connect_attempts'],
+	  $this->_configData['connect_attempts_timeout'],
 	  $curlErrorCode,
-	  $this->_microsecondsToSeconds($this->_sleepUseconds)
+	  $this->_configData['sleep_seconds']
 	);
 	$this->_log->error($errorMessage);
-	usleep($this->_sleepUseconds);
+	sleep($this->_configData['sleep_seconds']);
 	if ($this->_canRetry($startTime, $i)) {
 	  continue;
 	}
@@ -266,11 +159,11 @@ class Curl implements HttpInterface {
   
   protected function _canRetry($startTime, $i) {
     $timeElapsed = time() - $startTime;
-    return ($timeElapsed + $this->_connectTimeout + $this->_microsecondsToSeconds($this->_sleepUseconds)) <= $this->_connectAttemptsTimeout && $i < $this->_connectAttempts;
-  }
-  
-  protected function _microsecondsToSeconds($useconds) {
-    return $useconds / 1000000;
+    return (
+      $timeElapsed + $this->_configData['connect_timeout'] + $this->_configData['sleep_seconds'] <= $this->_configData['connect_attempts_timeout'] 
+      &&
+      $i < $this->_configData['connect_attempts']
+    );
   }
 
   protected function _checkResult($result) {

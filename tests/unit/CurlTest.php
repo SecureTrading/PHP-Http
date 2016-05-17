@@ -6,8 +6,15 @@ require_once(__DIR__ . '/helpers/CoreMocks.php');
 
 class CurlTest extends \Securetrading\Unittest\UnittestAbstract {
   public function setUp() {
-    $this->_curl = new \Securetrading\Http\Curl($this->getMockForAbstractClass('\Psr\Log\LoggerInterface'));
+    $this->_logMock = $this->getMockForAbstractClass('\Psr\Log\LoggerInterface');
+  }
+
+  public function tearDown() {
     \Securetrading\Unittest\CoreMocker::releaseCoreMocks();
+  }
+
+  public function _newInstance(array $configData = array()) { // Note - public so can be called from a closure.
+    return new \Securetrading\Http\Curl($this->_logMock, $configData);
   }
 
   private function _mockCurlSetAndExec(&$calls) {
@@ -41,16 +48,9 @@ class CurlTest extends \Securetrading\Unittest\UnittestAbstract {
     return $calls;
   }
 
-  private function _testingCurlSetoptWrapper(array $data, $functionBody) {
-    $functionsToCall = $data[0];
-    $expectedCurlKeys = array_slice($data, 1);
-
+  private function _testingCurlSetoptWrapper(array $expectedCurlKeys, $functionBody) {
     $calls = array();
     $this->_mockCurlSetAndExec($calls);
-
-    foreach($functionsToCall as $function => $params) {
-      call_user_func_array(array($this->_curl, $function), $params);
-    }
     
     $functionBody();
     
@@ -74,196 +74,21 @@ class CurlTest extends \Securetrading\Unittest\UnittestAbstract {
   }
 
   /**
-   *
-   */
-  public function testSetUsername() {
-    $returnValue = $this->_curl->setUsername('username');
-    $this->assertSame($this->_curl, $returnValue);
-  }
-
-  /**
-   *
-   */
-  public function testSetPassword() {
-    $returnValue = $this->_curl->setPassword('password');
-    $this->assertSame($this->_curl, $returnValue);
-  }
-
-  /**
-   *
-   */
-  public function testSetUserAgent() {
-    $returnValue = $this->_curl->setUserAgent('Secure Trading cURL.');
-    $this->assertSame($this->_curl, $returnValue);
-  }
-
-  /**
-   *
-   */
-  public function testSetProxyHost() {
-    $returnValue = $this->_curl->setProxyHost('127.0.0.2/');
-    $this->assertSame($this->_curl, $returnValue);
-  }
-
-  /**
-   *
-   */
-  public function testSetProxyPort() {
-    $returnValue = $this->_curl->setProxyPort('443');
-    $this->assertSame($this->_curl, $returnValue);
-  }
-
-  /**
-   *
-   */
-  public function testSetSslVerifyPeer() {
-    $returnValue = $this->_curl->setSslVerifyPeer(true);
-    $this->assertSame($this->_curl, $returnValue);
-  }
-
-  /**
-   *
-   */
-  public function testSetSslVerifyHost() {
-    $returnValue = $this->_curl->setSslVerifyHost(2);
-    $this->assertSame($this->_curl, $returnValue);
-  }
-
-  /**
-   *
-   */
-  public function testSetSslCaCertFile() {
-    $returnValue = $this->_curl->setSslCaCertFile('/tmp/ca_file.pem');
-    $this->assertSame($this->_curl, $returnValue);
-  }
-  
-  /**
-   *
-   */
-  public function testSetConnectTimeout() {
-    $returnValue = $this->_curl->setConnectTimeout(10);
-    $this->assertSame($this->_curl, $returnValue);
-  }
-
-  /**
-   *
-   */
-  public function testSetConnectAttemptsTimeout() {
-    $returnValue = $this->_curl->setConnectAttemptsTimeout(20);
-    $this->assertSame($this->_curl, $returnValue);
-  }
-
-  /**
-   *
-   */
-  public function testSetTimeout() {
-    $returnValue = $this->_curl->setTimeout(60);
-    $this->assertSame($this->_curl, $returnValue);
-  }
-
-  /**
-   *
-   */
-  public function testSetConnectAttempts() {
-    $returnValue = $this->_curl->setConnectAttempts(5);
-    $this->assertSame($this->_curl, $returnValue);
-  }
-
-  /**
-   *
-   */
-  public function testSetSleepUseconds() {
-    $returnValue = $this->_curl->setSleepUseconds(2000000);
-    $this->assertSame($this->_curl, $returnValue);
-  }
-
-  /**
-   *
-   */
-  public function testSetCurlOptions() {
-    $returnValue = $this->_curl->setCurlOptions(array(CURLOPT_POSTFIELDS => ''));
-    $this->assertSame($this->_curl, $returnValue);
-  }
-
-  /**
-   *
-   */
-  public function testSetCurlOption() {
-    $returnValue = $this->_curl->setCurlOption(CURLOPT_POSTFIELDS, '');
-    $this->assertSame($this->_curl, $returnValue);
-  }
-
-  /**
-   *
-   */
-  public function testSetUrl() {
-    $returnValue = $this->_curl->setUrl('http://127.0.0.1/');
-    $this->assertSame($this->_curl, $returnValue);
-  }
-
-  /**
-   *
-   */
-  public function testGetUrl() {
-    $this->assertEquals('', $this->_curl->getUrl());
-    $this->_curl->setUrl('http://www.securetrading.com');
-    $this->assertEquals('http://www.securetrading.com', $this->_curl->getUrl());
-  }
-
-  /**
-   *
-   */
-  public function testSetRequestHeaders() {
-    $returnValue = $this->_curl->setRequestHeaders(array('User-Agent: test', 'Content-Type: text/xml'));
-    $this->assertSame($this->_curl, $returnValue);
-  }
-
-  /**
-   *
-   */
-  public function testaddRequestHeader() {
-    $returnValue = $this->_curl->addRequestHeader('User-Agent: test');
-    $this->assertSame($this->_curl, $returnValue);
-  }
-
-  /**
-   *
-   */
-  public function testGetRequestHeaders() {
-    $this->assertEquals(array(), $this->_curl->getRequestHeaders());
-    $this->_curl->addRequestHeader('Content-Type: text/xml');
-    $this->assertEquals(array('Content-Type: text/xml'), $this->_curl->getRequestHeaders());
-    $this->_curl->addRequestHeader('User-Agent: test');
-    $this->assertEquals(array('Content-Type: text/xml', 'User-Agent: test'), $this->_curl->getRequestHeaders());
-    $this->_curl->setRequestHeaders(array('Content-Length: 1234', 'Transfer-Encoding: chunked'));
-    $this->assertEquals(array('Content-Length: 1234', 'Transfer-Encoding: chunked'), $this->_curl->getRequestHeaders());
-  }
-
-  /**
-   * 
-   */
-  public function testGet() {
-    $that = $this;
-    $this->_testingCurlSetoptWrapper(array(array()), function() use ($that) {
-      $returnValue = $that->_curl->get();
-      $that->assertEquals('curl_exec_rv', $returnValue);
-    });
-  }
-
-  /**
    * @dataProvider providerSend
    */
   public function testSend() {
     $args = func_get_args();
     $requestMethod = array_shift($args);
     $requestBody = array_shift($args);
+    $configData = array_shift($args);
     $that = $this;
+
     $this->_testingCurlSetoptWrapper($args, function() use ($that, $requestMethod, $requestBody) {
       if ($requestBody) {
-	$returnValue = $that->_curl->send($requestMethod, $requestBody);
+	$returnValue = $that->_newInstance()->send($requestMethod, $requestBody);
       }
       else {
-	$returnValue = $that->_curl->send($requestMethod);
+	$returnValue = $that->_newInstance()->send($requestMethod);
       }
       $that->assertEquals('curl_exec_rv', $returnValue);
     });
@@ -288,18 +113,30 @@ class CurlTest extends \Securetrading\Unittest\UnittestAbstract {
   }
 
   /**
+   * 
+   */
+  public function testGet() {
+    $that = $this;
+    $this->_testingCurlSetoptWrapper(array(), function() use ($that) {
+      $returnValue = $that->_newInstance()->get();
+      $that->assertEquals('curl_exec_rv', $returnValue);
+    });
+  }
+
+  /**
    * @dataProvider providerPost
    */
   public function testPost() {
     $args = func_get_args();
     $postArg = array_shift($args);
+    $configData = array_shift($args);
     $that = $this;
     $this->_testingCurlSetoptWrapper($args, function() use ($that, $postArg) {
       if ($postArg) {
-	$returnValue = $that->_curl->post($postArg);
+	$returnValue = $that->_newInstance()->post($postArg);
       }
       else {
-	$returnValue = $that->_curl->post();
+	$returnValue = $that->_newInstance()->post();
       }
       $that->assertEquals('curl_exec_rv', $returnValue);
     });
@@ -325,9 +162,12 @@ class CurlTest extends \Securetrading\Unittest\UnittestAbstract {
    * @dataProvider provider_prepareCurl
    */
   public function test_prepareCurl() {
+    $args = func_get_args();
+    $configData = array_shift($args);
+
     $that = $this;
-    $this->_testingCurlSetoptWrapper(func_get_args(), function() use ($that) {
-      $that->_curl->post('request_body');
+    $this->_testingCurlSetoptWrapper($args, function() use ($that, $configData) {
+      $that->_newInstance($configData)->post('request_body');
     });
   }
 
@@ -341,7 +181,7 @@ class CurlTest extends \Securetrading\Unittest\UnittestAbstract {
       array(CURLOPT_URL, 1, array(''))
     );
     $this->_addDataSet(
-      array('setUrl' => array('http://www.securetrading.com')),
+      array('url' => 'http://www.securetrading.com'),
       array(CURLOPT_URL, 1, array('http://www.securetrading.com'))
     );
     $this->_addDataSet(
@@ -349,15 +189,15 @@ class CurlTest extends \Securetrading\Unittest\UnittestAbstract {
       array(CURLOPT_USERAGENT, 1, array(''))
     );
     $this->_addDataSet(
-      array('setUserAgent' => array('user_agent')),
-      array(CURLOPT_USERAGENT, 1, array('user_agent'))
+      array('user_agent' => 'our_user_agent'),
+      array(CURLOPT_USERAGENT, 1, array('our_user_agent'))
     );
     $this->_addDataSet(
       array(),
       array(CURLOPT_SSL_VERIFYPEER, 1, array(2))
     );
     $this->_addDataSet(
-      array('setSslVerifyPeer' => array(false)),
+      array('ssl_verify_peer' => false),
       array(CURLOPT_SSL_VERIFYPEER, 1, array(false))
     );
     $this->_addDataSet(
@@ -365,15 +205,15 @@ class CurlTest extends \Securetrading\Unittest\UnittestAbstract {
       array(CURLOPT_SSL_VERIFYHOST, 1, array(true))
     );
     $this->_addDataSet(
-      array('setSslVerifyHost' => array(false)),
-      array(CURLOPT_SSL_VERIFYHOST, 1, array(false))
+      array('ssl_verify_host' => 0),
+      array(CURLOPT_SSL_VERIFYHOST, 1, array(0))
     );
     $this->_addDataSet(
       array(),
       array(CURLOPT_CONNECTTIMEOUT, 1, array(5))
     );
     $this->_addDataSet(
-      array('setConnectTimeout' => array(10)),
+      array('connect_timeout' => 10),
       array(CURLOPT_CONNECTTIMEOUT, 1, array(10))
     );
     $this->_addDataSet(
@@ -381,7 +221,7 @@ class CurlTest extends \Securetrading\Unittest\UnittestAbstract {
       array(CURLOPT_TIMEOUT, 1, array(60))
     );
     $this->_addDataSet(
-      array('setTimeout' => array(30)),
+      array('timeout' => 30),
       array(CURLOPT_TIMEOUT, 1, array(30))
     );
     $this->_addDataSet(
@@ -389,9 +229,10 @@ class CurlTest extends \Securetrading\Unittest\UnittestAbstract {
       array(CURLOPT_HTTPHEADER, 1, array(array()))
     );
     $this->_addDataSet(
-      array('setRequestHeaders' => array(array('Content-Type: text/xml')), 'addRequestHeader' => array('Origin: http://www.securetrading.com')),
+      array('http_headers' => array('Content-Type: text/xml', 'Origin: http://www.securetrading.com')),
       array(CURLOPT_HTTPHEADER, 1, array(array('Content-Type: text/xml', 'Origin: http://www.securetrading.com')))
     );
+
     $this->_addDataSet(
       array(),
       array(CURLOPT_VERBOSE, 1, array(true))
@@ -405,11 +246,11 @@ class CurlTest extends \Securetrading\Unittest\UnittestAbstract {
       array(CURLOPT_CAINFO, 0)
     );
     $this->_addDataSet(
-      array('setSslCaCertFile' => array('')),
+      array('ssl_cacertfile' => ''),
       array(CURLOPT_CAINFO, 0)
     );
     $this->_addDataSet(
-      array('setSslCaCertFile' => array('/tmp/cert.pem')),
+      array('ssl_cacertfile' => '/tmp/cert.pem'),
       array(CURLOPT_CAINFO, 1, array('/tmp/cert.pem'))
     );
     $this->_addDataSet(
@@ -417,11 +258,11 @@ class CurlTest extends \Securetrading\Unittest\UnittestAbstract {
       array(CURLOPT_PROXY, 0)
     );
     $this->_addDataSet(
-      array('setProxyHost' => array('')),
+      array('proxy_host' => ''),
       array(CURLOPT_PROXY, 0)
     );
     $this->_addDataSet(
-      array('setProxyHost' => array('http://www.securetrading.com')),
+      array('proxy_host' => 'http://www.securetrading.com'),
       array(CURLOPT_PROXY, 1, array('http://www.securetrading.com'))
     );
     $this->_addDataSet(
@@ -429,31 +270,31 @@ class CurlTest extends \Securetrading\Unittest\UnittestAbstract {
       array(CURLOPT_PROXYPORT, 0)
     );
     $this->_addDataSet(
-      array('setProxyPort' => array('')),
+      array('proxy_port' => ''),
       array(CURLOPT_PROXYPORT, 0)
     );
     $this->_addDataSet(
-      array('setProxyPort' => array('8080')),
+      array('proxy_port' => '8080'),
       array(CURLOPT_PROXYPORT, 1, array('8080'))
-    );
-    $this->_addDataSet(
-      array('setUsername' => array('user@securetrading.com')),
-      array(CURLOPT_HTTPAUTH, 0),
-      array(CURLOPT_USERPWD, 0)
-    );
-    $this->_addDataSet(
-      array('setPassword' => array('password')),
-      array(CURLOPT_HTTPAUTH, 0),
-      array(CURLOPT_USERPWD, 0)
-    );
-    $this->_addDataSet(
-      array('setUsername' => array('user@securetrading.com'), 'setPassword' => array('password')),
-      array(CURLOPT_HTTPAUTH, 1, array(CURLAUTH_BASIC)),
-      array(CURLOPT_USERPWD, 1, array('user@securetrading.com:password'))
     );
 
     $this->_addDataSet(
-      array('setCurlOptions' => array(array(CURLOPT_VERBOSE => false, CURLOPT_URL => "http://www.test.com")), 'setCurlOption' => array(CURLOPT_CRLF, true)),
+      array('username' => 'user@securetrading.com'),
+      array(CURLOPT_HTTPAUTH, 0),
+      array(CURLOPT_USERPWD, 0)
+    );
+    $this->_addDataSet(
+      array('password' => 'password'),
+      array(CURLOPT_HTTPAUTH, 0),
+      array(CURLOPT_USERPWD, 0)
+    );
+    $this->_addDataSet(
+      array('username' => 'user@securetrading.com', 'password' => 'password'),
+      array(CURLOPT_HTTPAUTH, 1, array(CURLAUTH_BASIC)),
+      array(CURLOPT_USERPWD, 1, array('user@securetrading.com:password'))
+    );
+    $this->_addDataSet(
+      array('curl_options' => array(CURLOPT_VERBOSE => false, CURLOPT_URL => 'http://www.test.com', CURLOPT_CRLF => true)),
       array(CURLOPT_VERBOSE, 2, array(true, false)),
       array(CURLOPT_URL, 2, array("", "http://www.test.com")),
       array(CURLOPT_CRLF, 1, array(true))
@@ -461,21 +302,8 @@ class CurlTest extends \Securetrading\Unittest\UnittestAbstract {
     $this->_addDataSet(
       array(),
       array(CURLOPT_RETURNTRANSFER, 1, array(true))
-    );
+      );
     return $this->_getDataSets();
-  }
-
-  /**
-   *
-   */
-  public function testGetInfo() {
-    $that = $this;
-    \Securetrading\Unittest\CoreMocker::mockCoreFunction('curl_getinfo', function($ch, $curlinfoConstant) use ($that) {
-      $that->assertEquals(CURLINFO_HTTP_CODE, $curlinfoConstant);
-      return 'returned_value';
-    });
-    $returnValue = $this->_curl->getInfo(CURLINFO_HTTP_CODE);
-    $this->assertEquals('returned_value', $returnValue);
   }
 
   /**
@@ -487,11 +315,53 @@ class CurlTest extends \Securetrading\Unittest\UnittestAbstract {
       $that->assertEquals(CURLINFO_HTTP_CODE, $curlinfoConstant);
       return 'returned_value';
     });
-    $returnValue = $this->_curl->getResponseCode();
+    $returnValue = $this->_newInstance()->getResponseCode();
     $this->assertEquals('returned_value', $returnValue);
   }
 
-  // Note - getLogData(), _sendAndReceive(), _sendAndReceiveWithRetries() not unit tested.
+  // Note - getLogData() not unit tested.
+
+  /**
+   *
+   */
+  public function testGetInfo() {
+    $that = $this;
+    \Securetrading\Unittest\CoreMocker::mockCoreFunction('curl_getinfo', function($ch, $curlinfoConstant) use ($that) {
+      $that->assertEquals(CURLINFO_HTTP_CODE, $curlinfoConstant);
+      return 'returned_value';
+    });
+    $returnValue = $this->_newInstance()->getInfo(CURLINFO_HTTP_CODE);
+    $this->assertEquals('returned_value', $returnValue);
+  }
+
+  // Note - _sendAndReceive() not unit tested.
+
+  public function test_SendAndReceiveWithRetries() {
+    \Securetrading\Unittest\CoreMocker::mockCoreFunction('curl_exec', true);
+    \Securetrading\Unittest\CoreMocker::mockCoreFunction('curl_errno', CURLE_COULDNT_CONNECT);
+    \Securetrading\Unittest\CoreMocker::mockCoreFunction('time', 40);
+    
+    $this->_logMock
+      ->expects($this->exactly(4))
+      ->method('error')
+      ->withConsecutive(
+        array(sprintf('Failed to connect to http://www.test.com on attempt 1.  Max attempts: 4.  Connect attempts timeout: 26.  cURL error: %s.  Sleeping for 1 second(s).', CURLE_COULDNT_CONNECT)),
+        array(sprintf('Failed to connect to http://www.test.com on attempt 2.  Max attempts: 4.  Connect attempts timeout: 26.  cURL error: %s.  Sleeping for 1 second(s).', CURLE_COULDNT_CONNECT)),
+        array(sprintf('Failed to connect to http://www.test.com on attempt 3.  Max attempts: 4.  Connect attempts timeout: 26.  cURL error: %s.  Sleeping for 1 second(s).', CURLE_COULDNT_CONNECT)),
+	array(sprintf('Failed to connect to http://www.test.com on attempt 4.  Max attempts: 4.  Connect attempts timeout: 26.  cURL error: %s.  Sleeping for 1 second(s).', CURLE_COULDNT_CONNECT))
+      )
+    ;
+    
+    $curl = $this->_newInstance(array(
+      'connect_timeout' => 1,
+      'sleep_seconds' => 1,
+      'connect_attempts_timeout' => 26,
+      'connect_attempts' => 4,
+      'url' => 'http://www.test.com',
+    ));
+    $actualReturnValue = $this->_($curl, '_sendAndReceiveWithRetries');
+    $this->assertEquals(true, $actualReturnValue);
+  }
 
   /**
    *
@@ -499,7 +369,7 @@ class CurlTest extends \Securetrading\Unittest\UnittestAbstract {
   public function test_exec() {
     \Securetrading\Unittest\CoreMocker::mockCoreFunction('curl_exec', true);
     \Securetrading\Unittest\CoreMocker::mockCoreFunction('curl_errno', 0);
-    $returnValue = $this->_($this->_curl, '_exec');
+    $returnValue = $this->_($this->_newInstance(), '_exec');
     $this->assertEquals(array(true, 0), $returnValue);
   }
   
@@ -508,11 +378,13 @@ class CurlTest extends \Securetrading\Unittest\UnittestAbstract {
    */
   public function test_canRetry($startTime, $i, $expectedReturnValue) {
     \Securetrading\Unittest\CoreMocker::mockCoreFunction('time', 40);
-    $this->_curl->setConnectTimeout(5);
-    $this->_curl->setSleepUseconds(1000000);
-    $this->_curl->setConnectAttemptsTimeout(26);
-    $this->_curl->setConnectAttempts(10);
-    $actualReturnValue = $this->_($this->_curl, '_canRetry', $startTime, $i);
+    $curl = $this->_newInstance(array(
+      'connect_timeout' => 5,
+      'sleep_useconds' => 1,
+      'connect_attempts_timeout' => 26,
+      'connect_attempts' => 10,
+    ));
+    $actualReturnValue = $this->_($curl, '_canRetry', $startTime, $i);
     $this->assertEquals($expectedReturnValue, $actualReturnValue);
   }
 
@@ -526,25 +398,19 @@ class CurlTest extends \Securetrading\Unittest\UnittestAbstract {
   }
 
   /**
-   *
-   */
-  public function test_microsecondsToSeconds() {
-    $this->assertEquals(6, $this->_($this->_curl, '_microsecondsToSeconds', 6000000));
-  }
-
-  /**
    * @expectedException \Securetrading\Http\CurlException
    * @expectedExceptionCode \Securetrading\Http\CurlException::CODE_BAD_RESULT
    */
   public function test_checkResult_WhenError() {
-    $this->_($this->_curl, '_checkResult', false);
+    $this->_($this->_newInstance(), '_checkResult', false);
   }
 
   /**
    *
    */
   public function test_checkResult_WhenNoError() {
-    $returnValue = $this->_($this->_curl, '_checkResult', true);
-    $this->assertSame($this->_curl, $returnValue);
+    $curl = $this->_newInstance();
+    $returnValue = $this->_($curl, '_checkResult', true);
+    $this->assertSame($curl, $returnValue);
   }
 }

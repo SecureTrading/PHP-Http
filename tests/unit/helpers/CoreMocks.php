@@ -25,3 +25,7 @@ function curl_errno($ch) {
 function curl_getinfo($ch, $constant) {
   return \Securetrading\Unittest\CoreMocker::runCoreMock('curl_getinfo', array($ch, $constant));
 }
+
+function file_get_contents($file) {
+  return \Securetrading\Unittest\CoreMocker::runCoreMock('file_get_contents', array($file));
+}

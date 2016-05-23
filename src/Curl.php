@@ -119,7 +119,7 @@ class Curl implements HttpInterface {
     $this->_checkResult($result);
     return $result;
   }
-
+  
   protected function _sendAndReceiveWithRetries() {
     $i = 0;
     $startTime = time();
@@ -127,7 +127,6 @@ class Curl implements HttpInterface {
     
     while (true) {
       $i++;
-      $canRetry = false;
       list($execResult, $curlErrorCode) = $this->_exec();
       
       if (in_array($curlErrorCode, array(CURLE_COULDNT_CONNECT))) {
@@ -142,7 +141,9 @@ class Curl implements HttpInterface {
 	);
 	$this->_log->error($errorMessage);
 	sleep($this->_configData['sleep_seconds']);
-	if ($this->_canRetry($startTime, $i)) {
+	$newTimeout = $this->_getConnectionAttemptTimeout($startTime);
+	if ($this->_canRetry($newTimeout, $i)) {
+	  curl_setopt($this->_ch, CURLOPT_CONNECTTIMEOUT, $newTimeout);
 	  continue;
 	}
       }
@@ -156,14 +157,14 @@ class Curl implements HttpInterface {
     $curlErrorCode = curl_errno($this->_ch);
     return array($httpResponseBody, $curlErrorCode);
   }
-  
-  protected function _canRetry($startTime, $i) {
-    $timeElapsed = time() - $startTime;
-    return (
-      $timeElapsed + $this->_configData['connect_timeout'] + $this->_configData['sleep_seconds'] <= $this->_configData['connect_attempts_timeout'] 
-      &&
-      $i < $this->_configData['connect_attempts']
-    );
+
+  protected function _getConnectionAttemptTimeout($startTime) {
+    $timeRemaining = $this->_configData['connect_attempts_timeout'] - (time() - $startTime);
+    return min($timeRemaining, $this->_configData['connect_timeout']);
+  }
+
+  protected function _canRetry($connectionAttemptTimeout, $i) {
+    return ($connectionAttemptTimeout > 0) && ($i < $this->_configData['connect_attempts']);
   }
 
   protected function _checkResult($result) {

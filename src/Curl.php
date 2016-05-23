@@ -111,8 +111,12 @@ class Curl implements HttpInterface {
   }
   
   protected function _sendAndReceive() {
+    $this->_log->info(sprintf('Beginning HTTP request to %s.', $this->_configData['url']));
+
     $result = $this->_sendAndReceiveWithRetries();
-    
+
+    $this->_log->info(sprintf('Finished HTTP request to %s.', $this->_configData['url']));
+
     rewind($this->_tempStream);
     $this->_httpLogData = stream_get_contents($this->_tempStream);
 

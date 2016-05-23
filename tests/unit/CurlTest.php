@@ -334,7 +334,29 @@ class CurlTest extends \Securetrading\Unittest\UnittestAbstract {
     $this->assertEquals('returned_value', $returnValue);
   }
 
-  // Note - _sendAndReceive() not unit tested.
+  public function test_SendAndReceive() { // Note - Not all logic from this function unit tested.
+    \Securetrading\Unittest\CoreMocker::mockCoreFunction('curl_exec', true);
+    \Securetrading\Unittest\CoreMocker::mockCoreFunction('curl_errno', 0);
+
+    $this->_logMock
+      ->expects($this->exactly(2))
+      ->method('info')
+      ->withConsecutive(
+        array($this->equalTo('Beginning HTTP request to http://www.test.com.')),
+	array($this->equalTo('Finished HTTP request to http://www.test.com.'))
+      )
+    ;
+
+    $curl = $this->_newInstance(array(
+      'connect_timeout' => 5,
+      'sleep_seconds' => 1,
+      'connect_attempts_timeout' => 19,
+      'connect_attempts' => 4,
+      'url' => 'http://www.test.com',
+    ));
+
+    $this->_($curl, '_sendAndReceive');
+  }
 
   public function test_SendAndReceiveWithRetries() {
     \Securetrading\Unittest\CoreMocker::mockCoreFunction('curl_errno', CURLE_COULDNT_CONNECT);

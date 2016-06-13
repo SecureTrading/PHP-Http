@@ -75,7 +75,6 @@ class Curl implements HttpInterface {
 
   protected function _prepareCurl() {
     curl_setopt($this->_ch, CURLOPT_FOLLOWLOCATION, true);
-    curl_setopt($this->_ch, CURLOPT_FAILONERROR, true);
 
     curl_setopt($this->_ch, CURLOPT_URL, $this->_configData['url']);
     curl_setopt($this->_ch, CURLOPT_USERAGENT, $this->_configData['user_agent']);

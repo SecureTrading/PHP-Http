@@ -334,6 +334,23 @@ class CurlTest extends \Securetrading\Unittest\UnittestAbstract {
     $this->assertEquals('returned_value', $returnValue);
   }
 
+  public function testUpdateConfig() {
+    $curl = $this->_newInstance();
+
+    $actualConfig = $this->_getPrivateProperty($curl, '_configData');
+    $this->assertEquals('', $actualConfig['url']);
+    $this->assertEquals(false, array_key_exists('new_property', $actualConfig));
+
+    $curl->updateConfig(array('url' => 'new_url', 'new_property' => 'new_value'));
+
+    $actualConfig = $this->_getPrivateProperty($curl, '_configData');
+    $this->assertEquals('new_url', $actualConfig['url']);
+    $this->assertEquals('new_value', $actualConfig['new_property']);
+  }
+
+  /**
+   *
+   */
   public function test_SendAndReceive() { // Note - Not all logic from this function unit tested.
     \Securetrading\Unittest\CoreMocker::mockCoreFunction('curl_exec', true);
     \Securetrading\Unittest\CoreMocker::mockCoreFunction('curl_errno', 0);

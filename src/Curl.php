@@ -69,6 +69,10 @@ class Curl implements HttpInterface {
     return $this->_httpLogData;
   }
 
+  public function updateConfig($configData = array()) {
+    $this->_configData = array_replace($this->_configData, $configData);
+  }
+
   public function getInfo($curlInfoConstant = 0) {
     return curl_getinfo($this->_ch, $curlInfoConstant);
   }

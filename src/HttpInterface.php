@@ -8,4 +8,5 @@ interface HttpInterface {
   public function post($requestBody = '');
   public function getResponseCode();
   public function getLogData();
+  public function updateConfig($configData = array());
 }

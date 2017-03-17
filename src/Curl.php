@@ -107,10 +107,10 @@ class Curl implements HttpInterface {
       curl_setopt($this->_ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
       curl_setopt($this->_ch, CURLOPT_USERPWD, $this->_configData['username'] . ':' . $this->_configData['password']);
     }
-    
-    curl_setopt_array($this->_ch, $this->_configData['curl_options']);
-    
+
     curl_setopt($this->_ch, CURLOPT_RETURNTRANSFER, true);
+        
+    curl_setopt_array($this->_ch, $this->_configData['curl_options']);
   }
   
   protected function _sendAndReceive() {

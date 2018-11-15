@@ -10,7 +10,7 @@ class Curl implements HttpInterface {
     'user_agent' => '',
     'ssl_verify_peer' => true,
     'ssl_verify_host' => 2,
-    'connect_timeout' => 5,
+    'connect_timeout' => 10,
     'timeout' => 60,
     'http_headers' => array(),
     'ssl_cacertfile' => '',
@@ -25,6 +25,7 @@ class Curl implements HttpInterface {
     'sleep_seconds' => 1,
     'connect_attempts' => 20,
     'connect_attempts_timeout' => 40,
+    'retry_curl_error_codes' => array(CURLE_COULDNT_CONNECT, CURLE_COULDNT_RESOLVE_HOST, CURLE_COULDNT_RESOLVE_PROXY),
   );
 
   protected $_ch;
@@ -35,7 +36,7 @@ class Curl implements HttpInterface {
 
   public function __construct(\Psr\Log\LoggerInterface $log, array $configData = array()) {
     $this->_log = $log;
-    $this->_configData = array_replace($this->_configData, $configData);
+    $this->updateConfig($configData);
     $this->_ch = curl_init();
     $this->_tempStream = fopen('php://temp', "w+");
   }
@@ -70,6 +71,9 @@ class Curl implements HttpInterface {
   }
 
   public function updateConfig($configData = array()) {
+      if (array_key_exists('retry_curl_error_codes', $configData) && in_array(CURLE_OK, $configData['retry_curl_error_codes'])) {
+          throw new CurlException("CURLE_OK indicates success: cannot retry on this error code.", CurlException::CODE_BAD_RETRY_CONFIG);
+      }
     $this->_configData = array_replace($this->_configData, $configData);
   }
 
@@ -136,7 +140,7 @@ class Curl implements HttpInterface {
       $i++;
       list($execResult, $curlErrorCode) = $this->_exec();
       
-      if (in_array($curlErrorCode, array(CURLE_COULDNT_CONNECT))) {
+      if (in_array($curlErrorCode, $this->_configData['retry_curl_error_codes'])) {
 	$errorMessage = sprintf(
 	  'Failed to connect to %s on attempt %s.  Max attempts: %s.  Connect attempts timeout: %s.  cURL error: %s.  Sleeping for %s second(s).',
 	  $this->_configData['url'],

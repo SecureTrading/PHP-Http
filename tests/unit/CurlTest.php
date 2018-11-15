@@ -210,7 +210,7 @@ class CurlTest extends \Securetrading\Unittest\UnittestAbstract {
     );
     $this->_addDataSet(
       array(),
-      array(CURLOPT_CONNECTTIMEOUT, 1, array(5))
+      array(CURLOPT_CONNECTTIMEOUT, 1, array(10))
     );
     $this->_addDataSet(
       array('connect_timeout' => 10),
@@ -349,6 +349,16 @@ class CurlTest extends \Securetrading\Unittest\UnittestAbstract {
   }
 
   /**
+   * @expectedException \Exception
+   * @expectedExceptionMessage CURLE_OK indicates success: cannot retry on this error code.
+   * @expectedExceptionCode \Securetrading\Http\CurlException::CODE_BAD_RETRY_CONFIG
+   */
+  public function testUpdateConfig_WhenCurlCanRetryOnSuccess() {
+    $curl = $this->_newInstance();
+    $curl->updateConfig(array('retry_curl_error_codes' => array(CURLE_UNSUPPORTED_PROTOCOL, CURLE_OK)));
+  }
+    
+  /**
    *
    */
   public function test_SendAndReceive() { // Note - Not all logic from this function unit tested.
@@ -375,30 +385,81 @@ class CurlTest extends \Securetrading\Unittest\UnittestAbstract {
     $this->_($curl, '_sendAndReceive');
   }
 
-  public function test_SendAndReceiveWithRetries() {
-    \Securetrading\Unittest\CoreMocker::mockCoreFunction('curl_errno', CURLE_COULDNT_CONNECT);
-    $i = -1;
-    \Securetrading\Unittest\CoreMocker::mockCoreFunction('time', function() use (&$i) { $times = array(10, 15, 20, 25, 30); return $times[++$i]; });
+  /**
+   * @dataProvider provider_SendAndReceiveWithRetries_WhenNoRetries
+   */
+    public function test_SendAndReceiveWithRetries_WhenNoRetries($curlErrorCode, $curlErrorCodesToRetry = array()) {
+    $curlExecCallCount = 0;
+    \Securetrading\Unittest\CoreMocker::mockCoreFunction('curl_errno', $curlErrorCode);
+    \Securetrading\Unittest\CoreMocker::mockCoreFunction('curl_exec', function() use(&$curlExecCallCount) {
+      $curlExecCallCount++;
+      return 'fake_http_response_body';
+    });
     
     $this->_logMock
-      ->expects($this->exactly(4))
-      ->method('error')
-      ->withConsecutive(
-        array(sprintf('Failed to connect to http://www.test.com on attempt 1.  Max attempts: 4.  Connect attempts timeout: 19.  cURL error: %s.  Sleeping for 1 second(s).', CURLE_COULDNT_CONNECT)),
-        array(sprintf('Failed to connect to http://www.test.com on attempt 2.  Max attempts: 4.  Connect attempts timeout: 19.  cURL error: %s.  Sleeping for 1 second(s).', CURLE_COULDNT_CONNECT)),
-        array(sprintf('Failed to connect to http://www.test.com on attempt 3.  Max attempts: 4.  Connect attempts timeout: 19.  cURL error: %s.  Sleeping for 1 second(s).', CURLE_COULDNT_CONNECT)),
-	array(sprintf('Failed to connect to http://www.test.com on attempt 4.  Max attempts: 4.  Connect attempts timeout: 19.  cURL error: %s.  Sleeping for 1 second(s).', CURLE_COULDNT_CONNECT))
-      )
-    ;
-    
-    $curl = $this->_newInstance(array(
+      ->expects($this->never())
+      ->method('error');
+
+    $curlConfig = array(
       'connect_timeout' => 5,
       'sleep_seconds' => 1,
       'connect_attempts_timeout' => 19,
       'connect_attempts' => 4,
       'url' => 'http://www.test.com',
-    ));
+    );
 
+    if (!empty($curlErrorCodesToRetry)) {
+        $curlConfig['retry_curl_error_codes'] = $curlErrorCodesToRetry;
+    }
+    
+    $curl = $this->_newInstance($curlConfig);
+
+    $actualReturnValue = $this->_($curl, '_sendAndReceiveWithRetries');
+    $this->assertEquals('fake_http_response_body', $actualReturnValue);
+    $this->assertEquals(1, $curlExecCallCount);
+  }
+
+  public function provider_SendAndReceiveWithRetries_WhenNoRetries()
+  {
+      $this->_addDataSet(0);
+      $this->_addDataSet(CURLE_COULDNT_CONNECT, array(CURLE_LDAP_SEARCH_FAILED));
+      return $this->_getDataSets();
+  }
+
+  /**
+   * @dataProvider provider_SendAndReceiveWithRetries
+   */
+  public function test_SendAndReceiveWithRetries($curlErrorCode, $curlErrorCodesToRetry = array()) {
+    \Securetrading\Unittest\CoreMocker::mockCoreFunction('curl_errno', $curlErrorCode);
+    $i = -1;
+    \Securetrading\Unittest\CoreMocker::mockCoreFunction('time', function() use (&$i) { $times = array(10, 15, 20, 25, 30); return $times[++$i]; });
+    \Securetrading\Unittest\CoreMocker::mockCoreFunction('sleep', 0);
+    
+    $this->_logMock
+      ->expects($this->exactly(4))
+      ->method('error')
+      ->withConsecutive(
+        array(sprintf('Failed to connect to http://www.test.com on attempt 1.  Max attempts: 4.  Connect attempts timeout: 19.  cURL error: %s.  Sleeping for 1 second(s).', $curlErrorCode)),
+        array(sprintf('Failed to connect to http://www.test.com on attempt 2.  Max attempts: 4.  Connect attempts timeout: 19.  cURL error: %s.  Sleeping for 1 second(s).', $curlErrorCode)),
+        array(sprintf('Failed to connect to http://www.test.com on attempt 3.  Max attempts: 4.  Connect attempts timeout: 19.  cURL error: %s.  Sleeping for 1 second(s).', $curlErrorCode)),
+	    array(sprintf('Failed to connect to http://www.test.com on attempt 4.  Max attempts: 4.  Connect attempts timeout: 19.  cURL error: %s.  Sleeping for 1 second(s).', $curlErrorCode))
+      )
+    ;
+
+    $curlConfig = array(
+      'connect_timeout' => 5,
+      'sleep_seconds' => 1,
+      'connect_attempts_timeout' => 19,
+      'connect_attempts' => 4,
+      'url' => 'http://www.test.com',
+    );
+
+    if (!empty($curlErrorCodesToRetry)) {
+        $curlConfig['retry_curl_error_codes'] = $curlErrorCodesToRetry;
+    }
+
+    $curl = $this->_newInstance($curlConfig);
+    
     $args = array(
       array(CURLOPT_CONNECTTIMEOUT, 3, array(5, 5, 4)),
     );
@@ -410,6 +471,14 @@ class CurlTest extends \Securetrading\Unittest\UnittestAbstract {
     });
   }
 
+  public function provider_SendAndReceiveWithRetries() {
+    $this->_addDataSet(CURLE_COULDNT_CONNECT);
+    $this->_addDataSet(CURLE_COULDNT_RESOLVE_HOST);
+    $this->_addDataSet(CURLE_COULDNT_RESOLVE_PROXY);
+    $this->_addDataSet(CURLE_HTTP_POST_ERROR, array(CURLE_LDAP_SEARCH_FAILED, CURLE_HTTP_POST_ERROR));
+    return $this->_getDataSets();
+  }
+    
   /**
    *
    */
@@ -461,32 +530,6 @@ class CurlTest extends \Securetrading\Unittest\UnittestAbstract {
     $this->_addDataSet(-1, 6, false);
     return $this->_getDataSets();
   }
-
-  /**
-   * @dataProvider provider_canRetry
-   */
-  /*
-  public function test_canRetry($startTime, $i, $expectedReturnValue) {
-    \Securetrading\Unittest\CoreMocker::mockCoreFunction('time', 40);
-    $curl = $this->_newInstance(array(
-      'connect_timeout' => 5,
-      'sleep_useconds' => 1,
-      'connect_attempts_timeout' => 26,
-      'connect_attempts' => 10,
-    ));
-    $actualReturnValue = $this->_($curl, '_canRetry', $startTime, $i);
-    $this->assertEquals($expectedReturnValue, $actualReturnValue);
-  }
-
-  public function provider_canRetry() {
-    $this->_addDataSet(21, 0, true);
-    $this->_addDataSet(20, 0, true);
-    $this->_addDataSet(19, 0, false);
-    $this->_addDataSet(21, 9, true);
-    $this->_addDataSet(21, 10, false);
-    return $this->_getDataSets();
-  }
-  */
 
   /**
    * @expectedException \Securetrading\Http\CurlException

@@ -29,3 +29,7 @@ function curl_getinfo($ch, $constant) {
 function file_get_contents($file) {
   return \Securetrading\Unittest\CoreMocker::runCoreMock('file_get_contents', array($file));
 }
+
+function sleep($s) {
+    return \Securetrading\Unittest\CoreMocker::runCoreMock('sleep', array($s));
+}

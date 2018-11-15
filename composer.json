@@ -1,6 +1,6 @@
 {
   "name" : "securetrading/http",
-  "version" : "1.0.1",
+  "version" : "1.0.2",
   "description" : "Secure Trading's HTTP package - provides a generic HTTP interface and an implementation that uses cURL.  Supports logic for retries; SSL verification; etc.",
   "license" : "MIT",
   "require" : {

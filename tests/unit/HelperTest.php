@@ -9,12 +9,12 @@ class HelperTest extends \Securetrading\Unittest\UnittestAbstract {
 
   private $_serverBak = array();
 
-  public function setUp() {
+  public function setUp() : void {
     $this->_helper = new \Securetrading\Http\Helper();
     $this->_serverBak = $_SERVER;
   }
 
-  public function tearDown() {
+  public function tearDown() : void {
     $_SERVER = $this->_serverBak;
     \Securetrading\Unittest\CoreMocker::releaseCoreMocks();
   }

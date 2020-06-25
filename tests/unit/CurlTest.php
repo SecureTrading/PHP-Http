@@ -5,11 +5,11 @@ namespace Securetrading\Http\Tests\Unit;
 require_once(__DIR__ . '/helpers/CoreMocks.php');
 
 class CurlTest extends \Securetrading\Unittest\UnittestAbstract {
-  public function setUp() {
+  public function setUp() : void {
     $this->_logMock = $this->getMockForAbstractClass('\Psr\Log\LoggerInterface');
   }
 
-  public function tearDown() {
+  public function tearDown() : void {
     \Securetrading\Unittest\CoreMocker::releaseCoreMocks();
   }
 
@@ -349,11 +349,13 @@ class CurlTest extends \Securetrading\Unittest\UnittestAbstract {
   }
 
   /**
-   * @expectedException \Exception
-   * @expectedExceptionMessage CURLE_OK indicates success: cannot retry on this error code.
-   * @expectedExceptionCode \Securetrading\Http\CurlException::CODE_BAD_RETRY_CONFIG
+   * 
    */
   public function testUpdateConfig_WhenCurlCanRetryOnSuccess() {
+    $this->expectException(\Exception::class);
+    $this->expectExceptionMessage("CURLE_OK indicates success: cannot retry on this error code.");
+    $this->expectExceptionCode(\Securetrading\Http\CurlException::CODE_BAD_RETRY_CONFIG);
+      
     $curl = $this->_newInstance();
     $curl->updateConfig(array('retry_curl_error_codes' => array(CURLE_UNSUPPORTED_PROTOCOL, CURLE_OK)));
   }
@@ -532,10 +534,12 @@ class CurlTest extends \Securetrading\Unittest\UnittestAbstract {
   }
 
   /**
-   * @expectedException \Securetrading\Http\CurlException
-   * @expectedExceptionCode \Securetrading\Http\CurlException::CODE_BAD_RESULT
+   * 
    */
   public function test_checkResult_WhenError() {
+    $this->expectException(\Securetrading\Http\CurlException::class);
+    $this->expectExceptionCode(\Securetrading\Http\CurlException::CODE_BAD_RESULT);
+    
     $this->_($this->_newInstance(), '_checkResult', false);
   }
 

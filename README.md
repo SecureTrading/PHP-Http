@@ -4,6 +4,20 @@ A helper package used by other Secure Trading packages.
 
 `Securetrading\Http\Curl` provides a wrapper around the core PHP cURL functions that contains connection retry and logging logic.  A `\Securetrading\Http\CurlException` is thrown if the call it makes to `curl_exec()` fails.
 
+## Release History
+
+| Version  | Changes                        |
+| -------- |---------------                 |
+| 2.0.0    | PHP 7.3 and 7.4 compatibility. |
+| 1.0.0    | Initial Release                |
+
+## PHP Version Compatibility
+
+| Version  | Changes                        |
+| -------- |---------------                 |
+| 2.0.0    | PHP 7.3 - PHP 7.4              |
+| 1.0.0    | PHP 5.3 - PHP 7.2              |
+
 ## Using This Package
 
 Run this in the root directory of your application:

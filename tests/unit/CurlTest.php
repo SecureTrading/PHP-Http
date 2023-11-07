@@ -5,6 +5,8 @@ namespace Securetrading\Http\Tests\Unit;
 require_once(__DIR__ . '/helpers/CoreMocks.php');
 
 class CurlTest extends \Securetrading\Unittest\UnittestAbstract {
+  private $_logMock;
+
   public function setUp() : void {
     $this->_logMock = $this->getMockForAbstractClass('\Psr\Log\LoggerInterface');
   }

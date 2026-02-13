@@ -8,7 +8,7 @@ A helper package used by other Secure Trading packages.
 
 | Version | Changes                        |
 |---------|--------------------------------|
-| 4.0.0   | phpunit updates                |
+| 4.0.1   | phpunit updates                |
 | 4.0.0   | PHP 8.1 and 8.2 compatibility. |
 | 3.0.0   | PHP 7.3 and 7.4 compatibility. |
 | 2.0.0   | PHP 7.3 and 7.4 compatibility. |

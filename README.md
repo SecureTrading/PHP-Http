@@ -8,6 +8,7 @@ A helper package used by other Secure Trading packages.
 
 | Version | Changes                        |
 |---------|--------------------------------|
+| 4.0.1   | phpunit updates                |
 | 4.0.0   | PHP 8.1 and 8.2 compatibility. |
 | 3.0.0   | PHP 7.3 and 7.4 compatibility. |
 | 2.0.0   | PHP 7.3 and 7.4 compatibility. |
@@ -17,6 +18,7 @@ A helper package used by other Secure Trading packages.
 
 | Version | Changes               |
 |---------|-----------------------|
+| 4.0.1   | PHP 8.2     |
 | 4.0.0   | PHP 8.1 - PHP 8.2     |
 | 3.0.0   | PHP 8.0.0 - PHP 8.0.3 |
 | 2.0.0   | PHP 7.3 - PHP 7.4     |
@@ -33,11 +35,11 @@ Run this in the root directory of your application:
 Instantiate the client like this:
 
     $http = new \Securetrading\Http\Curl($logger, $configData)
-    
+
     # Where:
     # $logger implements \Psr\Log\LoggerInterface
     # $configData is a multidimensional array of config options.
-    
+
 Valid config options (and their default values) for the constructor are:
 
     array(

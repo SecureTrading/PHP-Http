@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d6c1c8439e62a16bac3c1a224c180651",
+    "content-hash": "21919f81af9e946a8cce1399b7361973",
     "packages": [
         {
             "name": "psr/log",
-            "version": "3.0.0",
+            "version": "3.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-fig/log.git",
-                "reference": "fe5ea303b0887d5caefd3d431c3e61ad47037001"
+                "reference": "f16e1d5863e37f8d8c2a01719f5b34baa2b714d3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-fig/log/zipball/fe5ea303b0887d5caefd3d431c3e61ad47037001",
-                "reference": "fe5ea303b0887d5caefd3d431c3e61ad47037001",
+                "url": "https://api.github.com/repos/php-fig/log/zipball/f16e1d5863e37f8d8c2a01719f5b34baa2b714d3",
+                "reference": "f16e1d5863e37f8d8c2a01719f5b34baa2b714d3",
                 "shasum": ""
             },
             "require": {
@@ -52,9 +52,9 @@
                 "psr-3"
             ],
             "support": {
-                "source": "https://github.com/php-fig/log/tree/3.0.0"
+                "source": "https://github.com/php-fig/log/tree/3.0.2"
             },
-            "time": "2021-07-14T16:46:02+00:00"
+            "time": "2024-09-11T13:17:53+00:00"
         },
         {
             "name": "securetrading/exception",
@@ -92,25 +92,25 @@
         },
         {
             "name": "securetrading/ioc",
-            "version": "3.0.0",
+            "version": "3.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/SecureTrading/PHP-IoC.git",
-                "reference": "1c7ac60d74843c5d877b6a90fd1c5d76e57d0dc7"
+                "reference": "72b90bb27314693a7309438e6b2ae95489b111fc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/SecureTrading/PHP-IoC/zipball/1c7ac60d74843c5d877b6a90fd1c5d76e57d0dc7",
-                "reference": "1c7ac60d74843c5d877b6a90fd1c5d76e57d0dc7",
+                "url": "https://api.github.com/repos/SecureTrading/PHP-IoC/zipball/72b90bb27314693a7309438e6b2ae95489b111fc",
+                "reference": "72b90bb27314693a7309438e6b2ae95489b111fc",
                 "shasum": ""
             },
             "require": {
-                "php": "^8.0",
+                "php": "^8.2",
                 "securetrading/exception": "^1.0"
             },
             "require-dev": {
                 "mikey179/vfsstream": "^1.6",
-                "securetrading/unittest": "^3.0"
+                "securetrading/unittest": "^4.0"
             },
             "type": "library",
             "autoload": {
@@ -125,9 +125,9 @@
             "description": "Secure Trading's Inversion of Control (IoC) package.",
             "support": {
                 "issues": "https://github.com/SecureTrading/PHP-IoC/issues",
-                "source": "https://github.com/SecureTrading/PHP-IoC/tree/3.0.0"
+                "source": "https://github.com/SecureTrading/PHP-IoC/tree/3.0.1"
             },
-            "time": "2021-04-20T13:26:41+00:00"
+            "time": "2026-02-13T08:12:27+00:00"
         }
     ],
     "packages-dev": [
@@ -1880,21 +1880,21 @@
         },
         {
             "name": "securetrading/unittest",
-            "version": "4.0.1",
+            "version": "4.0.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/SecureTrading/PHP-Unittest.git",
-                "reference": "2574a5db29bfba9a721ba54f3af9e137074a5d9b"
+                "reference": "df2a28095a13caab08a7c257a7ea3933dece374c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/SecureTrading/PHP-Unittest/zipball/2574a5db29bfba9a721ba54f3af9e137074a5d9b",
-                "reference": "2574a5db29bfba9a721ba54f3af9e137074a5d9b",
+                "url": "https://api.github.com/repos/SecureTrading/PHP-Unittest/zipball/df2a28095a13caab08a7c257a7ea3933dece374c",
+                "reference": "df2a28095a13caab08a7c257a7ea3933dece374c",
                 "shasum": ""
             },
             "require": {
-                "php": "^8.1",
-                "phpunit/phpunit": "^9.2"
+                "php": "^8.2",
+                "phpunit/phpunit": "^9.6"
             },
             "type": "library",
             "autoload": {
@@ -1909,9 +1909,9 @@
             "description": "Secure Trading's unittest package providing helper methods/classes for writing testing with PHPUnit.",
             "support": {
                 "issues": "https://github.com/SecureTrading/PHP-Unittest/issues",
-                "source": "https://github.com/SecureTrading/PHP-Unittest/tree/4.0.1"
+                "source": "https://github.com/SecureTrading/PHP-Unittest/tree/4.0.4"
             },
-            "time": "2023-11-02T13:42:05+00:00"
+            "time": "2026-02-12T12:47:20+00:00"
         },
         {
             "name": "theseer/tokenizer",
@@ -1966,12 +1966,12 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": "^8.1"
+        "php": "^8.2"
     },
-    "platform-dev": {},
+    "platform-dev": [],
     "plugin-api-version": "2.6.0"
 }
